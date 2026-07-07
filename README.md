@@ -17,6 +17,23 @@ An AI-powered Resume Screening and ATS Analysis web application built using **Py
 - Responsive Flask Web Interface
 
 ---
+##  Screenshots
+
+### Home Page
+
+![Home](assets/home.png)
+
+### Dashboard
+
+![Dashboard](assets/dashboard.png)
+
+### ATS Score
+
+![ATS Score](assets/ats-score.png)
+
+### AI Feedback
+
+![AI Feedback](assets/ai-feedback.png)
 
 ## Tech Stack
 
