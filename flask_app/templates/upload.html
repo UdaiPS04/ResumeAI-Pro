@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+
+{% block title %}Upload Resume - ResumeAI Pro{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card-custom">
+                <div class="text-center mb-4">
+                    <h3 class="fw-bold mb-2">Resume Upload & Analysis</h3>
+                    <p class="text-secondary small mb-0">Select a candidate resume in PDF or DOCX format for parsing and ATS evaluation.</p>
+                </div>
+
+                <form action="{{ url_for('analyze') }}" method="POST" enctype="multipart/form-data">
+                    
+                    <!-- File Upload Dropzone Container -->
+                    <div class="upload-zone mb-4" id="upload-area">
+                        <i class="bi bi-cloud-arrow-up text-primary fs-1 d-block mb-2"></i>
+                        <h6 class="fw-bold mb-1">Click to browse or drag & drop resume file here</h6>
+                        <p class="text-muted small mb-2">Supports PDF and DOCX documents up to 10 MB</p>
+                        <span id="file-name-display" class="badge bg-light text-primary border">No file selected</span>
+                        <input type="file" name="resume_file" id="resume_file" class="d-none" accept=".pdf,.docx,.doc" required>
+                    </div>
+
+                    <!-- Optional Job Description Textarea -->
+                    <div class="mb-4">
+                        <label for="job_description" class="form-label fw-bold text-dark mb-1">
+                            <i class="bi bi-file-earmark-text text-primary me-1"></i> Target Job Description (Optional)
+                        </label>
+                        <textarea name="job_description" id="job_description" rows="5" class="form-control" placeholder="Paste target job requirements here to compute job match percentage and identify missing skills..."></textarea>
+                        <div class="form-text small text-muted">Providing a Job Description enables job requirement keyword matching and gap analysis.</div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary-custom btn-lg">
+                            <i class="bi bi-cpu-fill me-2"></i> Analyze Resume & Calculate ATS Score
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

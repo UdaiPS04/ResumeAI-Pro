@@ -8,7 +8,7 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 import joblib
 
-from utils import clean_text
+from streamlit_app.utils.utils import clean_text
 
 print("========== STEP 1 ==========")
 print("Loading Dataset...")

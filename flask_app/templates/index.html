@@ -1,0 +1,97 @@
+{% extends "layout.html" %}
+
+{% block title %}ResumeAI Pro - Resume Analysis & ATS Scoring Platform{% endblock %}
+
+{% block content %}
+<!-- Hero Banner -->
+<div class="hero-container mb-5">
+    <div class="container text-center">
+        <h1 class="hero-title">Resume Analysis & ATS Scoring Platform</h1>
+        <p class="hero-subtitle mx-auto">
+            Upload candidate resumes to extract technical skills, evaluate ATS compliance, predict job role suitability using machine learning, and match qualifications against job descriptions.
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{{ url_for('upload') }}" class="btn btn-primary-custom btn-lg px-4">
+                <i class="bi bi-cloud-arrow-up-fill me-2"></i> Upload Resume for Analysis
+            </a>
+            <a href="{{ url_for('job_match') }}" class="btn btn-outline-custom btn-lg px-4">
+                <i class="bi bi-bullseye me-2"></i> Job Description Match
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Features Grid Container -->
+<div class="container">
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card-custom text-center h-100">
+                <div class="p-3 bg-primary-subtle text-primary rounded-circle d-inline-block mb-3" style="width: 60px; height: 60px; line-height: 32px;">
+                    <i class="bi bi-file-earmark-code-fill fs-3"></i>
+                </div>
+                <h5 class="fw-bold mb-2">Resume Parsing & NLP</h5>
+                <p class="text-secondary small mb-0">
+                    Extracts text from PDF and DOCX files, parses candidate contact information, and extracts technical skills using boundary regex matching.
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card-custom text-center h-100">
+                <div class="p-3 bg-primary-subtle text-primary rounded-circle d-inline-block mb-3" style="width: 60px; height: 60px; line-height: 32px;">
+                    <i class="bi bi-speedometer2 fs-3"></i>
+                </div>
+                <h5 class="fw-bold mb-2">Multi-Factor ATS Score</h5>
+                <p class="text-secondary small mb-0">
+                    Calculates a dynamic ATS score out of 100 based on contact info, skills, experience, education, projects, certifications, and formatting.
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card-custom text-center h-100">
+                <div class="p-3 bg-primary-subtle text-primary rounded-circle d-inline-block mb-3" style="width: 60px; height: 60px; line-height: 32px;">
+                    <i class="bi bi-diagram-3-fill fs-3"></i>
+                </div>
+                <h5 class="fw-bold mb-2">ML Role Classification</h5>
+                <p class="text-secondary small mb-0">
+                    Vectorizes textual features via TF-IDF representation and predicts candidate domain role suitability with machine learning.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Workflow Container -->
+    <div class="card-custom mb-5">
+        <h4 class="fw-bold text-center mb-4">How ResumeAI Pro Works</h4>
+        <div class="row g-4 text-center">
+            <div class="col-md-3">
+                <div class="p-3 border rounded-3 bg-light h-100">
+                    <span class="badge bg-primary rounded-circle mb-2 px-3 py-2 fs-6">1</span>
+                    <h6 class="fw-bold text-dark mb-1">Upload Document</h6>
+                    <p class="text-secondary micro mb-0">Select PDF or DOCX candidate resume.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 border rounded-3 bg-light h-100">
+                    <span class="badge bg-primary rounded-circle mb-2 px-3 py-2 fs-6">2</span>
+                    <h6 class="fw-bold text-dark mb-1">NLP Extraction</h6>
+                    <p class="text-secondary micro mb-0">Clean text, filter stop words & extract skills.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 border rounded-3 bg-light h-100">
+                    <span class="badge bg-primary rounded-circle mb-2 px-3 py-2 fs-6">3</span>
+                    <h6 class="fw-bold text-dark mb-1">TF-IDF & ML Scoring</h6>
+                    <p class="text-secondary micro mb-0">Classify domain role & compute ATS score.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 border rounded-3 bg-light h-100">
+                    <span class="badge bg-primary rounded-circle mb-2 px-3 py-2 fs-6">4</span>
+                    <h6 class="fw-bold text-dark mb-1">Review Report</h6>
+                    <p class="text-secondary micro mb-0">Explore dashboard & download text report.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

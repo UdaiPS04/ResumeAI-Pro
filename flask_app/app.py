@@ -16,13 +16,13 @@ if str(BASE_DIR) not in sys.path:
 if str(FLASK_APP_DIR) not in sys.path:
     sys.path.insert(0, str(FLASK_APP_DIR))
 
-# ---------------- 2. Configure Flask Application ----------------
+# ---------------- 2. Configure Single Flask Application Instance ----------------
 app = Flask(
     __name__,
     template_folder=str(FLASK_APP_DIR / "templates"),
     static_folder=str(FLASK_APP_DIR / "static")
 )
-app.secret_key = "resumeai_pro_enterprise_key_2026"
+app.secret_key = "resumeai_pro_secret_key_2026"
 
 # ---------------- 3. Directory Configurations via Pathlib ----------------
 UPLOAD_FOLDER = FLASK_APP_DIR / "uploads"
@@ -44,114 +44,41 @@ def allowed_file(filename: str) -> bool:
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-# ---------------- 4. Import Utility Modules with Fallbacks ----------------
+# ---------------- 4. Import Utility Modules ----------------
 try:
-    from flask_app.utils.resume_parser import extract_text
+    from flask_app.utils.resume_parser import extract_text, extract_candidate_contact
 except ImportError:
-    try:
-        from utils.resume_parser import extract_text
-    except ImportError:
-        def extract_text(file) -> str:
-            if file is None: return ""
-            try:
-                if hasattr(file, 'read'):
-                    return file.read().decode('utf-8', errors='ignore')
-                return str(file)
-            except Exception:
-                return "Sample Candidate Resume: Experienced Software Engineer proficient in Python, SQL, Docker, and REST API."
+    from utils.resume_parser import extract_text, extract_candidate_contact
 
 try:
     from flask_app.utils.predict import predict_resume_category
 except ImportError:
-    try:
-        from utils.predict import predict_resume_category
-    except ImportError:
-        def predict_resume_category(text: str):
-            return "Software Engineering", 0.92
+    from utils.predict import predict_resume_category
 
 try:
     from flask_app.utils.utils import extract_skills
 except ImportError:
-    try:
-        from utils.utils import extract_skills
-    except ImportError:
-        def extract_skills(text: str) -> list:
-            return ["Python", "SQL", "Git", "REST API", "Docker", "Machine Learning"]
+    from utils.utils import extract_skills
 
 try:
     from flask_app.utils.ats import calculate_ats_score
 except ImportError:
-    try:
-        from utils.ats import calculate_ats_score
-    except ImportError:
-        def calculate_ats_score(skills: list, confidence: float, word_count: int = 300, match_score: int = 0, contact_info: dict = None, resume_text: str = "") -> dict:
-            return {
-                "skills_score": 20, "skills_max": 25,
-                "experience_score": 15, "experience_max": 20,
-                "projects_score": 16, "projects_max": 20,
-                "education_score": 10, "education_max": 10,
-                "formatting_score": 8, "formatting_max": 10,
-                "keyword_score": 12, "keyword_max": 15,
-                "total_ats": 81
-            }
+    from utils.ats import calculate_ats_score
 
 try:
     from flask_app.utils.feedback import generate_feedback
 except ImportError:
-    try:
-        from utils.feedback import generate_feedback
-    except ImportError:
-        def generate_feedback(skills: list, score: int) -> list:
-            return [
-                "Quantify key achievements with measurable metrics.",
-                "Ensure standard ATS section headings (Experience, Education, Skills).",
-                "Align technical keywords with target job requirements."
-            ]
+    from utils.feedback import generate_feedback
 
 try:
     from flask_app.utils.jd_match import match_resume_with_jd
 except ImportError:
-    try:
-        from utils.jd_match import match_resume_with_jd
-    except ImportError:
-        def match_resume_with_jd(resume_text: str, jd_text: str):
-            matching = ["Python", "SQL", "Git"]
-            missing = ["AWS", "Kubernetes"]
-            return 75, matching, missing
+    from utils.jd_match import match_resume_with_jd
 
 
 # ---------------- Helper Parsers ----------------
 
-def extract_contact_info(text: str):
-    """Extracts Candidate Name, Email, Phone, LinkedIn URL, and GitHub URL."""
-    email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
-    phone_pattern = r'(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}'
-    linkedin_pattern = r'(?:https?://)?(?:www\.)?linkedin\.com/in/[a-zA-Z0-9_-]+'
-    github_pattern = r'(?:https?://)?(?:www\.)?github\.com/[a-zA-Z0-9_-]+'
-
-    emails = re.findall(email_pattern, text)
-    phones = re.findall(phone_pattern, text)
-    linkedins = re.findall(linkedin_pattern, text, re.IGNORECASE)
-    githubs = re.findall(github_pattern, text, re.IGNORECASE)
-
-    email = emails[0] if emails else "Not Specified"
-    phone = phones[0] if phones else "Not Specified"
-    linkedin = linkedins[0] if linkedins else "Not Specified"
-    github = githubs[0] if githubs else "Not Specified"
-
-    lines = [line.strip() for line in text.split('\n') if line.strip()]
-    name = lines[0] if lines and len(lines[0].split()) <= 4 else "Candidate"
-
-    return {
-        "name": name,
-        "email": email,
-        "phone": phone,
-        "linkedin": linkedin,
-        "github": github
-    }
-
-
-def detect_section_coverage(text: str):
+def detect_section_coverage(text: str) -> dict:
     """Detects presence of key resume sections."""
     text_lower = text.lower()
     return {
@@ -163,7 +90,7 @@ def detect_section_coverage(text: str):
     }
 
 
-def compute_keyword_frequencies(text: str):
+def compute_keyword_frequencies(text: str) -> dict:
     stopwords = {
         'the', 'and', 'to', 'of', 'a', 'in', 'for', 'is', 'on', 'that', 'by', 'this',
         'with', 'i', 'you', 'it', 'not', 'or', 'be', 'are', 'from', 'at', 'as', 'your',
@@ -184,7 +111,7 @@ def compute_keyword_frequencies(text: str):
     }
 
 
-def generate_real_recommendations(contact: dict, skills: list, word_count: int, missing_skills: list, coverage: dict):
+def generate_real_recommendations(contact: dict, skills: list, word_count: int, missing_skills: list, coverage: dict) -> list:
     recs = []
     if contact["email"] == "Not Specified":
         recs.append("Add a clear email address in the contact section for recruiter outreach.")
@@ -246,7 +173,7 @@ def analyze():
             flash('Unable to extract text from document. File may be image-based or empty.', 'error')
             return redirect(url_for('upload'))
 
-        contact_info = extract_contact_info(resume_text)
+        contact_info = extract_candidate_contact(resume_text)
         coverage = detect_section_coverage(resume_text)
         words = re.findall(r'\b\w+\b', resume_text)
         word_count = len(words)
@@ -259,18 +186,21 @@ def analyze():
 
         if jd_provided:
             match_score, matching_skills, missing_skills = match_resume_with_jd(resume_text, jd_text)
+            jd_message = ""
         else:
             match_score = 0
             matching_skills = []
             missing_skills = []
+            jd_message = "Upload or paste a Job Description to calculate compatibility."
 
         ats_breakdown = calculate_ats_score(
+            resume_text=resume_text,
             skills=skills,
+            jd_text=jd_text,
             confidence=confidence,
-            word_count=word_count,
-            match_score=match_score,
             contact_info=contact_info,
-            resume_text=resume_text
+            word_count=word_count,
+            match_score=match_score
         )
 
         frequencies = compute_keyword_frequencies(resume_text)
@@ -288,6 +218,7 @@ def analyze():
             "frequencies": frequencies,
             "recommendations": recommendations,
             "jd_provided": jd_provided,
+            "jd_message": jd_message,
             "match_score": int(match_score),
             "matching_skills": matching_skills,
             "missing_skills": missing_skills,
@@ -354,7 +285,7 @@ def download_report():
     breakdown = results.get('breakdown', {})
 
     report_content = f"""================================================================
-RESUMEAI PRO - ENTERPRISE ATS DIAGNOSTIC REPORT
+RESUMEAI PRO - RESUME ANALYSIS & ATS AUDIT REPORT
 ================================================================
 Candidate Name: {contact.get('name', 'N/A')}
 Email Address: {contact.get('email', 'N/A')}
@@ -363,17 +294,19 @@ LinkedIn: {contact.get('linkedin', 'N/A')}
 GitHub: {contact.get('github', 'N/A')}
 
 Filename: {results.get('filename', 'Resume')}
-Predicted Domain Role: {results.get('category', 'N/A')}
-ML Classifier Confidence: {results.get('confidence', 0.95)*100:.2f}%
-ATS Compatibility Index: {results.get('ats_score', 0)}/100
+Predicted Role Category: {results.get('category', 'N/A')}
+Classifier Confidence: {results.get('confidence', 0.95)*100:.2f}%
+ATS Score: {results.get('ats_score', 0)}/100
 ----------------------------------------------------------------
 ATS FACTOR BREAKDOWN:
+- Contact Information: {breakdown.get('contact_score', 0)}/{breakdown.get('contact_max', 10)}
 - Skills Portfolio: {breakdown.get('skills_score', 0)}/{breakdown.get('skills_max', 25)}
-- Work Experience: {breakdown.get('experience_score', 0)}/{breakdown.get('experience_max', 20)}
-- Projects Section: {breakdown.get('projects_score', 0)}/{breakdown.get('projects_max', 20)}
 - Education Section: {breakdown.get('education_score', 0)}/{breakdown.get('education_max', 10)}
-- Formatting & Length: {breakdown.get('formatting_score', 0)}/{breakdown.get('formatting_max', 10)}
-- Keyword Alignment: {breakdown.get('keyword_score', 0)}/{breakdown.get('keyword_max', 15)}
+- Projects Section: {breakdown.get('projects_score', 0)}/{breakdown.get('projects_max', 20)}
+- Work Experience: {breakdown.get('experience_score', 0)}/{breakdown.get('experience_max', 15)}
+- Certifications Section: {breakdown.get('certifications_score', 0)}/{breakdown.get('certifications_max', 10)}
+- Formatting & Length: {breakdown.get('formatting_score', 0)}/{breakdown.get('formatting_max', 5)}
+- Keyword Match Alignment: {breakdown.get('keyword_score', 0)}/{breakdown.get('keyword_max', 5)}
 ----------------------------------------------------------------
 DOCUMENT STATISTICS:
 Total Word Count: {stats.get('word_count', 0)}
@@ -383,7 +316,7 @@ EXTRACTED SKILLS PORTFOLIO:
 {', '.join(results.get('skills', []))}
 ----------------------------------------------------------------
 JOB DESCRIPTION MATCH ANALYSIS:
-JD Requirement Match Index: {results.get('match_score', 0)}%
+JD Requirement Match Index: {results.get('match_score', 0) if results.get('jd_provided') else 'N/A'}
 Matched Keywords: {', '.join(results.get('matching_skills', []))}
 Missing Skill Gaps: {', '.join(results.get('missing_skills', []))}
 ----------------------------------------------------------------
@@ -391,7 +324,7 @@ RECOMMENDATIONS & AUDIT ACTION ITEMS:
 """ + "\n".join([f"- {rec}" for rec in results.get('recommendations', [])]) + """
 ----------------------------------------------------------------
 Developer: Udai Pratap Singh (+91 7007906932 | udailps5151@gmail.com)
-Generated by ResumeAI Pro Enterprise Screening Platform.
+Generated by ResumeAI Pro Resume Analysis Platform.
 ================================================================
 """
 
@@ -412,12 +345,12 @@ def about():
 # ---------------- Error Handlers ----------------
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template('layout.html', content="<div class='container py-5 text-center'><h2>404 - Page Not Found</h2><p class='text-muted'>The requested page could not be located.</p><a href='/' class='btn btn-primary-enterprise'>Return Home</a></div>"), 404
+    return render_template('layout.html', content="<div class='container py-5 text-center'><h2>404 - Page Not Found</h2><p class='text-muted'>The requested page could not be located.</p><a href='/' class='btn btn-primary-custom'>Return Home</a></div>"), 404
 
 
 @app.errorhandler(500)
 def internal_server_error(e):
-    return render_template('layout.html', content="<div class='container py-5 text-center'><h2>500 - Internal Server Error</h2><p class='text-muted'>An unexpected error occurred on the server.</p><a href='/' class='btn btn-primary-enterprise'>Return Home</a></div>"), 500
+    return render_template('layout.html', content="<div class='container py-5 text-center'><h2>500 - Internal Server Error</h2><p class='text-muted'>An unexpected error occurred on the server.</p><a href='/' class='btn btn-primary-custom'>Return Home</a></div>"), 500
 
 
 # ---------------- Main Execution ----------------
